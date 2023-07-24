@@ -1,0 +1,30 @@
+---
+# tasks file for squid
+- name: Install packages
+  ansible.builtin.dnf:
+    name: "{{ packages }}"
+    state: latest
+
+- name: Backup conf
+  ansible.builtin.copy:
+    src: "{{ squid_conf }}"
+    dest: "{{ squid_conf }}.ori"
+    force: no
+    remote_src: yes
+
+- name: Open Squid port
+  ansible.posix.firewalld:
+    port: "{{ squid_port }}/{{ squid_proto }}"
+    permanent: yes
+    immediate: yes
+    state: enabled
+
+- name: Push squid conf
+  ansible.builtin.template:
+    src: squid.conf.j2
+    dest: "{{ squid_conf }}"
+
+- name: Restart squid
+  ansible.builtin.service:
+    name: "{{ squid_service }}"
+    state: restarted
